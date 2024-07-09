@@ -3,6 +3,10 @@
 #include <stdlib.h>
 
 #ifdef __x86_64__
+
+#define FUNCTION_OFFSET 8
+#define STACK_ALIGNMENT 16
+
 typedef struct mcontext_
 {
 	volatile size_t rax;
@@ -14,7 +18,7 @@ typedef struct mcontext_
 	volatile size_t r9;
 	volatile size_t r10;
 	volatile size_t r11;
-	volatile size_t rip;
+	volatile uintptr_t rip;
 } mcontext_ct;
 
 #else
@@ -36,5 +40,5 @@ typedef struct ucontext_
 
 void getcontext_ct(ucontext_ct *);
 void setcontext_ct(const ucontext_ct *);
-void makecontext_ct(ucontext_ct *, void *(void), int, ...);
+void makecontext_ct(ucontext_ct *, void (*)(void));
 void swapcontext_ct(ucontext_ct *, const ucontext_ct *);

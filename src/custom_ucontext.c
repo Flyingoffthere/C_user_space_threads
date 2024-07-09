@@ -22,7 +22,7 @@ void getcontext_ct(ucontext_ct *ucontext)
 		"mov %0, rbp\n\t" SYNTAX_UNSPEC
 		: "=r"(rsp)
 		:);
-	rsp += 16;
+	rsp += STACK_ALIGNMENT;
 	asm volatile(
 		SYNTAX_SPEC
 		"mov %0, rax\n\t"
@@ -156,4 +156,9 @@ inline __attribute__((always_inline)) void swapcontext_ct(ucontext_ct *oucp, con
 {
 	getcontext_ct(oucp);
 	setcontext_ct(ucp);
+}
+
+void makecontext_ct(ucontext_ct *ucp, void (*func)(void))
+{
+	ucp->mcontext.rip = (uintptr_t)func + FUNCTION_OFFSET;
 }
