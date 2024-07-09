@@ -151,3 +151,9 @@ void setcontext_ct(const ucontext_ct *ucontext)
 		: "r"(next_rip)
 		:);
 }
+
+inline __attribute__((always_inline)) void swapcontext_ct(ucontext_ct *oucp, const ucontext_ct *ucp)
+{
+	getcontext_ct(oucp);
+	setcontext_ct(ucp);
+}

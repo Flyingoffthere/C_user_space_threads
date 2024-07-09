@@ -36,3 +36,5 @@ typedef struct ucontext_
 
 void getcontext_ct(ucontext_ct *);
 void setcontext_ct(const ucontext_ct *);
+void makecontext_ct(ucontext_ct *, void *(void), int, ...);
+void swapcontext_ct(ucontext_ct *, const ucontext_ct *);
