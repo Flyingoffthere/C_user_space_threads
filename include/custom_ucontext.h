@@ -4,7 +4,7 @@
 
 #ifdef __x86_64__
 
-#define RSP_BEFORE_CALL_OFFSET 16
+#define RSP_BEFORE_CALL_OFFSET "16"
 #define RETURN_INSTRUCTION_OFFSET "8"
 
 typedef struct mcontext_

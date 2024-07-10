@@ -4,18 +4,8 @@
 #define TRUE 1
 #define FALSE 0
 
-#define USE_INTEL_SYNTAX TRUE
-#define USE_GCC_BUILTINS FALSE
-
 void getcontext_ct(ucontext_ct *ucontext)
 {
-	asm volatile(
-		"mov %0, rbp\n\t" 
-		: "=m"(ucontext->stack.sp)
-		:
-		);
-	ucontext->stack.sp += RSP_BEFORE_CALL_OFFSET;
-
 	asm volatile(
 		"mov %0, rax\n\t"
 		"mov %1, rcx\n\t"
@@ -26,31 +16,20 @@ void getcontext_ct(ucontext_ct *ucontext)
 		"mov %6, r9\n\t"
 		"mov %7, r10\n\t"
 		"mov %8, r11\n\t" 
+		"lea r12, [rbp + " RSP_BEFORE_CALL_OFFSET "]\n\t"
+		"mov %9, r12\n\t"
+		"mov r12, [rbp + " RETURN_INSTRUCTION_OFFSET "]\n\t"
+		"mov %10, r12\n\t" 
+		"mov r12, [rbp]\n\t" 
+		"mov %11, r12\n\t" 
 		: "=m"(ucontext->mcontext.rax), "=m"(ucontext->mcontext.rcx),
 		  "=m"(ucontext->mcontext.rdx), "=m"(ucontext->mcontext.rsi),
 		  "=m"(ucontext->mcontext.rdi), "=m"(ucontext->mcontext.r8),
 		  "=m"(ucontext->mcontext.r9),  "=m"(ucontext->mcontext.r10),
-		  "=m"(ucontext->mcontext.r11)
+		  "=m"(ucontext->mcontext.r11), "=m"(ucontext->stack.sp),
+		  "=m"(ucontext->mcontext.rip), "=m"(ucontext->stack.bp)
 		:
-		:
-		);
-
-#if USE_GCC_BUILTINS
-	(ucontext)->mcontext.rip = (uintptr_t)__builtin_return_address(0);
-#else
-	asm volatile(
-		"mov rax, [rbp + " RETURN_INSTRUCTION_OFFSET "]\n\t"
-		"mov %0, rax\n\t" 
-		: "=r"(ucontext->mcontext.rip)
-		:
-		: "rax"
-		);
-#endif
-
-	asm volatile(
-		"mov %0, [rbp]\n\t" 
-		: "=r"(ucontext->stack.bp)
-		:
+		: "r12"
 		);
 }
 
@@ -95,12 +74,17 @@ void swapcontext_ct(ucontext_ct *oucp, const ucontext_ct *ucp)
 	getcontext_ct(oucp);
 
 	asm volatile(
-		"mov rax, [rbp + 8]\n\t"
-		"mov %0, rax\n\t" 
-		: "=r"(oucp->mcontext.rip)
+		"lea r12, [rbp + " RSP_BEFORE_CALL_OFFSET "]\n\t"
+		"mov %0, r12\n\t"
+		"mov r12, [rbp + " RETURN_INSTRUCTION_OFFSET "]\n\t"
+		"mov %1, r12\n\t" 
+		"mov r12, [rbp]\n\t" 
+		"mov %2, r12\n\t"  
+		: "=m"(oucp->stack.sp), "=m"(oucp->mcontext.rip),
+		  "=m"(oucp->stack.bp)
 		:
-		: "rax"
-		); // correction, later need to fix
+		: "r12"
+		);
 
 	setcontext_ct(ucp);
 }
