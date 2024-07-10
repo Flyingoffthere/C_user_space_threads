@@ -43,5 +43,5 @@ int main(void)
 	swapcontext_ct(&main_ctx, &goo_ctx);
 	puts("MAIN: bye");
 
-	exit(EXIT_SUCCESS);
+	return EXIT_SUCCESS;
 }

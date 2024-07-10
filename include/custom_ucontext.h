@@ -4,6 +4,7 @@
 
 #ifdef __x86_64__
 
+#define STACK_ALIGNMENT 8
 #define RSP_BEFORE_CALL_OFFSET "16"
 #define RETURN_INSTRUCTION_OFFSET "8"
 
@@ -39,7 +40,7 @@ typedef struct ucontext_
 	mcontext_ct mcontext;
 } ucontext_ct;
 
-void getcontext_ct(ucontext_ct *);
-void setcontext_ct(const ucontext_ct *);
+int getcontext_ct(ucontext_ct *);
+int setcontext_ct(const ucontext_ct *);
 void makecontext_ct(ucontext_ct *, void (*)(void));
-void swapcontext_ct(ucontext_ct *, const ucontext_ct *);
+int swapcontext_ct(ucontext_ct *, const ucontext_ct *);

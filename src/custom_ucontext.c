@@ -1,10 +1,12 @@
+#include <stdlib.h>
 #include <stdio.h>
+#include <errno.h>
 #include "../include/custom_ucontext.h"
 
 #define TRUE 1
 #define FALSE 0
 
-void getcontext_ct(ucontext_ct *ucontext)
+int getcontext_ct(ucontext_ct *ucontext)
 {
 	asm volatile(
 		"mov %0, rax\n\t"
@@ -31,16 +33,18 @@ void getcontext_ct(ucontext_ct *ucontext)
 		:
 		: "r12"
 		);
+
+	return EXIT_SUCCESS; 
 }
 
-void setcontext_ct(const ucontext_ct *ucontext)
+int setcontext_ct(const ucontext_ct *ucontext)
 {
 	static uintptr_t NEXT_RIP;
 
 	if (ucontext->stack.size == 0)
 	{
 		fprintf(stderr, "[setcontext_ct failed]: stack not allocated\n");
-		return;
+		return EXIT_FAILURE;
 	}
 
 	NEXT_RIP = ucontext->mcontext.rip;
@@ -67,9 +71,19 @@ void setcontext_ct(const ucontext_ct *ucontext)
 		  "g"(ucontext->stack.bp),	   "r"(NEXT_RIP)
 		: "rax", "rcx", "rdx", "rsi", "rdi", "r8", "r9", "r10", "r11"
 	);
+
+	return EXIT_FAILURE;
 }
 
-void swapcontext_ct(ucontext_ct *oucp, const ucontext_ct *ucp)
+int check_enough_stack_space_left(const stack_ct *stack)
+{
+	size_t space_occupied = (uintptr_t) stack->bp - (uintptr_t) stack->sp;
+	size_t space_left = stack->size - space_occupied;
+	if (space_left < STACK_ALIGNMENT) return FALSE;
+	return TRUE;
+}
+
+int swapcontext_ct(ucontext_ct *oucp, const ucontext_ct *ucp)
 {
 	getcontext_ct(oucp);
 
@@ -86,7 +100,13 @@ void swapcontext_ct(ucontext_ct *oucp, const ucontext_ct *ucp)
 		: "r12"
 		);
 
-	setcontext_ct(ucp);
+	if (check_enough_stack_space_left(&ucp->stack)) {
+			setcontext_ct(ucp);
+			return EXIT_SUCCESS;
+	}
+	errno = ENOMEM;
+
+	return EXIT_FAILURE;
 }
 
 void makecontext_ct(ucontext_ct *ucp, void (*func)(void))
