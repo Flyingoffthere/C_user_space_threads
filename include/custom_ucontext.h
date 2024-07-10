@@ -4,20 +4,20 @@
 
 #ifdef __x86_64__
 
-#define FUNCTION_OFFSET 8
-#define STACK_ALIGNMENT 16
+#define RSP_BEFORE_CALL_OFFSET 16
+#define RETURN_INSTRUCTION_OFFSET "8"
 
 typedef struct mcontext_
 {
-	volatile size_t rax;
-	volatile size_t rcx;
-	volatile size_t rdx;
-	volatile size_t rsi;
-	volatile size_t rdi;
-	volatile size_t r8;
-	volatile size_t r9;
-	volatile size_t r10;
-	volatile size_t r11;
+	volatile uintptr_t rax;
+	volatile uintptr_t rcx;
+	volatile uintptr_t rdx;
+	volatile uintptr_t rsi;
+	volatile uintptr_t rdi;
+	volatile uintptr_t r8;
+	volatile uintptr_t r9;
+	volatile uintptr_t r10;
+	volatile uintptr_t r11;
 	volatile uintptr_t rip;
 } mcontext_ct;
 
@@ -27,7 +27,8 @@ typedef struct mcontext_
 
 typedef struct stack_
 {
-	void *sbp;
+	void *bp;
+	void *sp;
 	size_t size;
 } stack_ct;
 

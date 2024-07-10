@@ -1,6 +1,6 @@
 CC = gcc
 
-CFLAGS = -Wall -Wextra -g -Iinclude 
+CFLAGS = -Wall -Wextra -g -Iinclude -masm=intel
 LDFLAGS = -lm
 
 SRC_DIR = src
