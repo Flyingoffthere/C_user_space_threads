@@ -78,7 +78,7 @@ int setcontext_ct(const ucontext_ct *ucontext)
 int check_enough_stack_space_left(const stack_ct *stack)
 {
 	size_t space_occupied = (uintptr_t) stack->bp - (uintptr_t) stack->sp;
-	size_t space_left = stack->size - space_occupied;
+	intmax_t space_left = stack->size - space_occupied;
 	if (space_left < STACK_ALIGNMENT) return FALSE;
 	return TRUE;
 }
@@ -109,7 +109,7 @@ int swapcontext_ct(ucontext_ct *oucp, const ucontext_ct *ucp)
 	return EXIT_FAILURE;
 }
 
-void makecontext_ct(ucontext_ct *ucp, void (*func)(void))
+void makecontext_ct(ucontext_ct *ucp, void (*routine)(void))
 {
-	ucp->mcontext.rip = (uintptr_t)func;
+	ucp->mcontext.rip = (uintptr_t) routine;
 }
