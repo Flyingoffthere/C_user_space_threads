@@ -109,7 +109,21 @@ int swapcontext_ct(ucontext_ct *oucp, const ucontext_ct *ucp)
 	return EXIT_FAILURE;
 }
 
+static const ucontext_ct *linked_contexts[MAX_DEPTH_OF_CONTEXT_CALLS];
+static int current_linked_context = -1; // no contexts initially
+void restore_linked(void)
+{
+	if (current_linked_context == -1) abort();
+
+	const ucontext_ct *linked_context = linked_contexts[current_linked_context--];
+	if (linked_context == NULL) exit(EXIT_SUCCESS);
+	setcontext_ct(linked_context);
+}
+
 void makecontext_ct(ucontext_ct *ucp, void (*routine)(void))
 {
 	ucp->mcontext.rip = (uintptr_t) routine;
+	linked_contexts[++current_linked_context] = ucp->uc_link;
+	*((uintptr_t *)ucp->stack.bp) = (uintptr_t) restore_linked;
+	ucp->stack.bp += sizeof(uintptr_t);
 }

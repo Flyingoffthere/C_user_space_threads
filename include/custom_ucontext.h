@@ -2,6 +2,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#define MAX_DEPTH_OF_CONTEXT_CALLS 100
+
 #ifdef __x86_64__
 
 #define STACK_ALIGNMENT 8

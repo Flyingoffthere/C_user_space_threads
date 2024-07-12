@@ -1,29 +1,34 @@
 #include "../include/custom_ucontext.h"
+#include <signal.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/time.h>
 
 // tests
 
-ucontext_ct foo_ctx, goo_ctx, main_ctx;
+ucontext_ct foo_ctx, goo_ctx;
+
+void goo(void)
+{
+	puts("GOO: doing work");
+	return;	
+}
 
 void foo(void)
 {
-	puts("FOO: hello");
+	puts("FOO: doing work");
+	goo_ctx.uc_link = &foo_ctx;
+	makecontext_ct(&goo_ctx, &goo);
 	swapcontext_ct(&foo_ctx, &goo_ctx);
-	puts("FOO: bye");
-	swapcontext_ct(&foo_ctx, &main_ctx);
+	puts("FOO: Goo returned");
+	return;
 }
-void goo(void)
-{
-	puts("GOO: hello");
-	swapcontext_ct(&goo_ctx, &foo_ctx);
-	puts("GOO: bye");
-	swapcontext_ct(&goo_ctx, &foo_ctx);
-}
+
 
 int main(void)
 {
-	main_ctx.stack.size = sizeof(char) * 1024 * 64;
-	getcontext_ct(&main_ctx);
 
 	char *foo_stack = malloc(sizeof(char) * 1024 * 64);
 	getcontext_ct(&foo_ctx);
@@ -37,11 +42,8 @@ int main(void)
 	goo_ctx.stack.bp = goo_stack;
 	goo_ctx.stack.sp = goo_stack;
 	goo_ctx.stack.size = sizeof(char) * 1024 * 64;
-	makecontext_ct(&goo_ctx, &goo);
 
-	puts("MAIN: hello");
-	swapcontext_ct(&main_ctx, &goo_ctx);
-	puts("MAIN: bye");
+	setcontext_ct(&foo_ctx);
 
 	return EXIT_SUCCESS;
 }
