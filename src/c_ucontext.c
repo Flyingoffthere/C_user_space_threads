@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include "../include/c_ucontext.h"
+#include "../include/dstructs/stack.h"
 
 #define TRUE 1
 #define FALSE 0
@@ -113,14 +114,19 @@ int swapcontext_ct(ucontext_ct *oucp, const ucontext_ct *ucp)
 	return EXIT_FAILURE;
 }
 
-static const ucontext_ct *linked_contexts[MAX_DEPTH_OF_CONTEXT_CALLS];
-static int current_linked_context = -1; // no contexts initially
+static stack ucontext_stack = {
+	.size = 0,
+	.comparator = NULL,
+	.data_destructor = NULL,
+	.head = NULL,
+	.tail = NULL,
+};
+
 void restore_linked(void)
 {
-	if (current_linked_context == -1) abort();
-
-	const ucontext_ct *linked_context = linked_contexts[current_linked_context--];
-	if (linked_context == NULL) exit(EXIT_SUCCESS);
+	static const ucontext_ct *linked_context;
+	if (!linked_context || stack_pop(&ucontext_stack, (void **) &linked_context) == -1) 
+		exit(EXIT_SUCCESS);
 	setcontext_ct(linked_context);
 }
 
@@ -129,7 +135,10 @@ void makecontext_ct(ucontext_ct *ucp, routine worker, void *args)
 	ucp->mcontext.rip = (uintptr_t) worker;
 	ucp->args = args;
 
-	linked_contexts[++current_linked_context] = ucp->uc_link;
+	if (stack_push(&ucontext_stack, ucp->uc_link) == -1) {
+		errno = ENOMEM;
+		exit(EXIT_FAILURE);
+	}
 	*((uintptr_t *)ucp->stack.bp) = (uintptr_t) restore_linked;
 	ucp->stack.bp += sizeof(uintptr_t);
 }

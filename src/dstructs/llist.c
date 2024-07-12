@@ -2,10 +2,13 @@
 #include <string.h>
 #include "../../include/dstructs/llist.h"
 
-void llist_init(llist *list, void (*data_destructor)(void *data))
+void llist_init(llist *list, 
+				void (*data_destructor)(void *data), 
+				bool (*comparator)(const void *key1, const void *key2))
 {
 	list->size = 0;
-	list->data_destructor = destructor;
+	list->comparator = comparator;
+	list->data_destructor = data_destructor;
 	list->head = NULL;
 	list->tail = NULL;
 }
@@ -59,7 +62,7 @@ void llist_destroy(llist *list)
 
 int llist_ins_next(llist *list, llist_node *node, const void *data)
 {
-	llist_node new_node;
+	llist_node *new_node;
 	if (!(new_node = malloc(sizeof(llist_node)))) return -1;
 
 	new_node->data = data;

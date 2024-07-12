@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdbool.h>
+#include <stdlib.h>
 
 typedef struct llist_node_ {
 	void 				*data;
@@ -16,7 +17,9 @@ typedef struct llist_ {
 	void (*data_destructor)(void *data);
 } llist;
 
-void llist_init(llist *list, void (*destructor)(void *data));
+void llist_init(llist *list, 
+				void (*data_destructor)(void *data),
+				bool (*comparator)(const void *key1, const void *key2));
 void llist_destroy(llist *list);
 int llist_ins_next(llist *list, llist_node *node, const void *data);
 int llist_rem_next(llist *list, llist_node *node, void **data);
