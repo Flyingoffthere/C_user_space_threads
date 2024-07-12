@@ -120,9 +120,12 @@ void restore_linked(void)
 	setcontext_ct(linked_context);
 }
 
-void makecontext_ct(ucontext_ct *ucp, void (*routine)(void))
+static void *current_args;
+void makecontext_ct(ucontext_ct *ucp, routine worker, void *args)
 {
-	ucp->mcontext.rip = (uintptr_t) routine;
+	ucp->mcontext.rip = (uintptr_t) worker;
+	current_args = args;
+
 	linked_contexts[++current_linked_context] = ucp->uc_link;
 	*((uintptr_t *)ucp->stack.bp) = (uintptr_t) restore_linked;
 	ucp->stack.bp += sizeof(uintptr_t);

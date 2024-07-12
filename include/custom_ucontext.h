@@ -42,7 +42,9 @@ typedef struct ucontext_
 	mcontext_ct mcontext;
 } ucontext_ct;
 
+typedef void(*routine)(void);
+
 int getcontext_ct(ucontext_ct *);
 int setcontext_ct(const ucontext_ct *);
-void makecontext_ct(ucontext_ct *, void (*)(void));
+void makecontext_ct(ucontext_ct *, routine, void *args);
 int swapcontext_ct(ucontext_ct *, const ucontext_ct *);
