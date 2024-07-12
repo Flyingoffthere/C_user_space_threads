@@ -1,6 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <stdlib.h>
+#include <signal.h>
 
 #define MAX_DEPTH_OF_CONTEXT_CALLS 100
 
@@ -38,8 +39,10 @@ typedef struct stack_
 typedef struct ucontext_
 {
 	struct ucontext_ *uc_link;
+	sigset_t sigmask;
 	stack_ct stack;
 	mcontext_ct mcontext;
+	void *args;
 } ucontext_ct;
 
 typedef void(*routine)(void);

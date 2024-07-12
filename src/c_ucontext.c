@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
-#include "../include/custom_ucontext.h"
+#include "../include/c_ucontext.h"
 
 #define TRUE 1
 #define FALSE 0
@@ -37,9 +37,13 @@ int getcontext_ct(ucontext_ct *ucontext)
 	return EXIT_SUCCESS; 
 }
 
+static void *current_args;
+
 int setcontext_ct(const ucontext_ct *ucontext)
 {
 	static uintptr_t NEXT_RIP;
+
+	current_args = ucontext->args;
 
 	if (ucontext->stack.size == 0)
 	{
@@ -120,11 +124,10 @@ void restore_linked(void)
 	setcontext_ct(linked_context);
 }
 
-static void *current_args;
 void makecontext_ct(ucontext_ct *ucp, routine worker, void *args)
 {
 	ucp->mcontext.rip = (uintptr_t) worker;
-	current_args = args;
+	ucp->args = args;
 
 	linked_contexts[++current_linked_context] = ucp->uc_link;
 	*((uintptr_t *)ucp->stack.bp) = (uintptr_t) restore_linked;
