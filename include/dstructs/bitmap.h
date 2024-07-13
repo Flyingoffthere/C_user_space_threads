@@ -1,6 +1,7 @@
 #pragma once 
 
 #include <stdlib.h>
+#include <stdbool.h>
 
 typedef struct bitmap_ {
 	bool 	*bits;

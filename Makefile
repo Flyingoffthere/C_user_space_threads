@@ -1,7 +1,6 @@
 CC = gcc
 
-CFLAGS = -Wall -Wextra -g -Iinclude -masm=intel
-LDFLAGS = -lm
+CFLAGS = -Wall -Wextra -g -Iinclude -masm=intel 
 
 SRC_DIR = src
 INC_DIR = include
@@ -17,7 +16,7 @@ all: $(TARGET)
 
 $(TARGET): $(OBJS)
 	@mkdir -p $(BIN_DIR)
-	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ $(OBJS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(dir $@)

@@ -114,7 +114,7 @@ int swapcontext_ct(ucontext_ct *oucp, const ucontext_ct *ucp)
 	return EXIT_FAILURE;
 }
 
-static stack ucontext_stack = {
+static stack_ds ucontext_stack = {
 	.size = 0,
 	.comparator = NULL,
 	.data_destructor = NULL,
@@ -122,7 +122,7 @@ static stack ucontext_stack = {
 	.tail = NULL,
 };
 
-void restore_linked(void)
+static void restore_linked(void)
 {
 	static const ucontext_ct *linked_context;
 	if (!linked_context || stack_pop(&ucontext_stack, (void **) &linked_context) == -1) 
@@ -139,6 +139,8 @@ void makecontext_ct(ucontext_ct *ucp, routine worker, void *args)
 		errno = ENOMEM;
 		exit(EXIT_FAILURE);
 	}
-	*((uintptr_t *)ucp->stack.bp) = (uintptr_t) restore_linked;
+	*((routine *) ucp->stack.bp) = restore_linked;
 	ucp->stack.bp += sizeof(uintptr_t);
+	ucp->stack.sp += sizeof(uintptr_t);
+	ucp->stack.size -= sizeof(uintptr_t);
 }

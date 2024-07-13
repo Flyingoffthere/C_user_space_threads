@@ -39,7 +39,6 @@ typedef struct stack_
 typedef struct ucontext_
 {
 	struct ucontext_ *uc_link;
-	sigset_t sigmask;
 	stack_ct stack;
 	mcontext_ct mcontext;
 	void *args;

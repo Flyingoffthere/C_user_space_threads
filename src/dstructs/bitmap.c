@@ -4,8 +4,11 @@ int bitmap_create(bitmap *bmap, size_t size)
 {
 	bmap->size = size;
 	bool *bits;
-	if (!(bmap = malloc(sizeof(bool) * size))) {
+	if (!(bits = malloc(sizeof(bool) * size))) {
 		return EXIT_FAILURE;
+	}
+	for (size_t idx = 0; idx < size; idx++) {
+		bits[idx] = false;
 	}
 	bmap->bits = bits;
 	return EXIT_SUCCESS;
@@ -14,7 +17,7 @@ int bitmap_create(bitmap *bmap, size_t size)
 int bitmap_find_first(const bitmap *bmap, bool key)
 {
 	for (size_t idx = 0; idx < bmap->size; idx ++) {
-		if (bmap[idx] == key) return idx;
+		if ((bmap->bits)[idx] == key) return idx;
 	}
 	return -1;
 }

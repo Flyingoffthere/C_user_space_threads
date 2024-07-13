@@ -1,12 +1,28 @@
+#pragma once
 #include "c_ucontext.h"
 
-typedef int thread_id;
+#define MAX_NUM_OF_THREADS		  20
+#define THREAD_DEFAULT_STACK_SIZE 64*1024
 
-typedef enum thread_ct_state_ {READY, RUNNING, WAITING, TERMINATED} thread_ct_state;
+typedef int cthread_id;
 
-typedef struct thread_ct_ {
-	thread_id 		id;
-	routine 		worker;
+typedef enum cthread_state_ {
+	READY,
+	WAIT,
+	RUN,
+	TERMINATED,
+} cthread_state;
+
+typedef struct cthread_ {
+	cthread_id 		id;
+	cthread_state 	state;
 	ucontext_ct 	*context;
-	thread_ct_state state;
-} thread_ct;
+} cthread;
+
+
+cthread_id cthread_create(routine, 
+						  void *args, 
+						  intmax_t stack_size);
+
+void __cthread_yield(void);
+#define yield() __cthread_yield
