@@ -4,10 +4,7 @@
 #include "../include/c_ucontext.h"
 #include "../include/dstructs/stack.h"
 
-#define TRUE 1
-#define FALSE 0
-
-int getcontext_ct(ucontext_ct *ucontext)
+exit_status getcontext_ct(ucontext_ct *ucontext)
 {
 	asm volatile(
 		"mov %0, rax\n\t"
@@ -19,18 +16,13 @@ int getcontext_ct(ucontext_ct *ucontext)
 		"mov %6, r9\n\t"
 		"mov %7, r10\n\t"
 		"mov %8, r11\n\t" 
-		"lea r12, [rbp + " RSP_BEFORE_CALL_OFFSET "]\n\t"
-		"mov %9, r12\n\t"
 		"mov r12, [rbp + " RETURN_INSTRUCTION_OFFSET "]\n\t"
-		"mov %10, r12\n\t" 
-		"mov r12, [rbp]\n\t" 
-		"mov %11, r12\n\t" 
+		"mov %9, r12\n\t" 
 		: "=m"(ucontext->mcontext.rax), "=m"(ucontext->mcontext.rcx),
 		  "=m"(ucontext->mcontext.rdx), "=m"(ucontext->mcontext.rsi),
 		  "=m"(ucontext->mcontext.rdi), "=m"(ucontext->mcontext.r8),
 		  "=m"(ucontext->mcontext.r9),  "=m"(ucontext->mcontext.r10),
-		  "=m"(ucontext->mcontext.r11), "=m"(ucontext->stack.sp),
-		  "=m"(ucontext->mcontext.rip), "=m"(ucontext->stack.bp)
+		  "=m"(ucontext->mcontext.r11), "=m"(ucontext->mcontext.rip)
 		:
 		: "r12"
 		);
@@ -40,7 +32,7 @@ int getcontext_ct(ucontext_ct *ucontext)
 
 static void *current_args;
 
-int setcontext_ct(const ucontext_ct *ucontext)
+exit_status setcontext_ct(const ucontext_ct *ucontext)
 {
 	static uintptr_t NEXT_RIP;
 
@@ -80,27 +72,22 @@ int setcontext_ct(const ucontext_ct *ucontext)
 	return EXIT_FAILURE;
 }
 
-int check_enough_stack_space_left(const stack_ct *stack)
+bool check_enough_stack_space_left(const stack_ct *stack)
 {
 	size_t space_occupied = (uintptr_t) stack->bp - (uintptr_t) stack->sp;
 	intmax_t space_left = stack->size - space_occupied;
-	if (space_left < STACK_ALIGNMENT) return FALSE;
-	return TRUE;
+	if (space_left < STACK_ALIGNMENT) return true;
+	return false;
 }
 
-int swapcontext_ct(ucontext_ct *oucp, const ucontext_ct *ucp)
+exit_status swapcontext_ct(ucontext_ct *oucp, const ucontext_ct *ucp)
 {
 	getcontext_ct(oucp);
 
 	asm volatile(
-		"lea r12, [rbp + " RSP_BEFORE_CALL_OFFSET "]\n\t"
-		"mov %0, r12\n\t"
 		"mov r12, [rbp + " RETURN_INSTRUCTION_OFFSET "]\n\t"
-		"mov %1, r12\n\t" 
-		"mov r12, [rbp]\n\t" 
-		"mov %2, r12\n\t"  
-		: "=m"(oucp->stack.sp), "=m"(oucp->mcontext.rip),
-		  "=m"(oucp->stack.bp)
+		"mov %0, r12\n\t" 
+		: "=m"(oucp->mcontext.rip)
 		:
 		: "r12"
 		);
@@ -139,8 +126,7 @@ void makecontext_ct(ucontext_ct *ucp, routine worker, void *args)
 		errno = ENOMEM;
 		exit(EXIT_FAILURE);
 	}
+	ucp->stack.bp -= STACK_ALIGNMENT;
+	ucp->stack.sp -= STACK_ALIGNMENT;
 	*((routine *) ucp->stack.bp) = restore_linked;
-	ucp->stack.bp += sizeof(uintptr_t);
-	ucp->stack.sp += sizeof(uintptr_t);
-	ucp->stack.size -= sizeof(uintptr_t);
 }

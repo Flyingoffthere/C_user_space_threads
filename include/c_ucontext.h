@@ -3,12 +3,12 @@
 #include <stdlib.h>
 #include <signal.h>
 
-#define MAX_DEPTH_OF_CONTEXT_CALLS 100
+typedef int exit_status; 
+typedef void(*routine)(void);
 
 #ifdef __x86_64__
 
 #define STACK_ALIGNMENT 8
-#define RSP_BEFORE_CALL_OFFSET "16"
 #define RETURN_INSTRUCTION_OFFSET "8"
 
 typedef struct mcontext_
@@ -44,9 +44,7 @@ typedef struct ucontext_
 	void *args;
 } ucontext_ct;
 
-typedef void(*routine)(void);
-
-int getcontext_ct(ucontext_ct *);
-int setcontext_ct(const ucontext_ct *);
+exit_status getcontext_ct(ucontext_ct *);
+exit_status setcontext_ct(const ucontext_ct *);
 void makecontext_ct(ucontext_ct *, routine, void *args);
-int swapcontext_ct(ucontext_ct *, const ucontext_ct *);
+exit_status swapcontext_ct(ucontext_ct *, const ucontext_ct *);

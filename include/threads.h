@@ -2,7 +2,7 @@
 #include "c_ucontext.h"
 
 #define MAX_NUM_OF_THREADS		  20
-#define THREAD_DEFAULT_STACK_SIZE 64*1024
+#define DEFAULT_STACK_SIZE 		  64 * 1024 
 
 typedef int cthread_id;
 
@@ -23,6 +23,8 @@ typedef struct cthread_ {
 cthread_id cthread_create(routine, 
 						  void *args, 
 						  intmax_t stack_size);
+
+ucontext_ct *run_thread(cthread_id);
 
 void __cthread_yield(void);
 #define yield() __cthread_yield
